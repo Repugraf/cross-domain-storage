@@ -16,7 +16,12 @@
     "type": "git",
     "url": "git+https://github.com/Repugraf/cross-domain-storage.git"
   },
-  "keywords": [],
+  "keywords": [
+    "cross",
+    "domain",
+    "storage",
+    "localStorage"
+  ],
   "author": "Serhii Mamedov",
   "license": "ISC",
   "bugs": {
