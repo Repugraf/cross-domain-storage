@@ -1,0 +1,64 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "extends": [
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parserOptions": {
+    "project": [
+      "tsconfig.json"
+    ],
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "rules": {
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/no-empty-function": "off",
+    "quotes": [
+      "error",
+      "double"
+    ],
+    "semi": "error",
+    "indent": [
+      "error",
+      2
+    ],
+    "comma-dangle": [
+      "error",
+      "never"
+    ],
+    "use-isnan": "error",
+    "no-return-await": "error",
+    "require-await": "error",
+    "array-bracket-newline": "error",
+    "comma-spacing": [
+      "error",
+      {
+        "before": false,
+        "after": true
+      }
+    ],
+    "eol-last": "error",
+    "max-len": [
+      "error",
+      {
+        "code": 120
+      }
+    ],
+    "no-mixed-spaces-and-tabs": "error"
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "lib",
+    "jest.config.js",
+    "*.test.ts",
+    "scripts"
+  ]
+}

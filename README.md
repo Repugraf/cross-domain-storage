@@ -1,2 +1,3 @@
-# cross-domain-storage
+# Cross Domain Storage
+
 Enables shared cross domain localStorage and sessionStorage
