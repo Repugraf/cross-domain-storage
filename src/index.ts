@@ -1,5 +1,2 @@
-const getHost = () => {};
-
-const getClient = () => {};
-
-export { getHost, getClient };
+export { getServer } from "./server";
+export { getClient } from "./client";
