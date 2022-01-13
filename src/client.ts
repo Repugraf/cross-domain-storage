@@ -1,4 +1,10 @@
-import { getGUID, IRequestMessage, IResponseMessage, IStorageType, parseJSON } from "./shared";
+import {
+  createMessage,
+  ICreateMessageProps,
+  IResponseMessage,
+  IStorageType,
+  parseJSON
+} from "./shared";
 import { error } from "./log";
 
 interface IClientConfig {
@@ -9,25 +15,6 @@ interface IClientConfig {
   /** Will log errors and warnings */
   debug?: boolean;
 }
-
-interface ICreateMessageProps {
-  storageType?: IRequestMessage["storageType"];
-  method: IRequestMessage["method"];
-  key: IRequestMessage["key"];
-  value?: IRequestMessage["value"];
-  returnResult?: IRequestMessage["returnResult"];
-}
-
-const createMessage = (props: ICreateMessageProps): IRequestMessage => {
-  return {
-    id: getGUID(),
-    storageType: props.storageType ?? "localStorage",
-    method: props.method,
-    key: props.key,
-    value: props.value,
-    returnResult: props.value
-  };
-};
 
 /**
  * Creates client instance

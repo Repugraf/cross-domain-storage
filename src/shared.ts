@@ -25,3 +25,22 @@ export const parseJSON = <T = any>(data: any): T | null => {
     return null;
   }
 };
+
+export interface ICreateMessageProps {
+  storageType?: IRequestMessage["storageType"];
+  method: IRequestMessage["method"];
+  key: IRequestMessage["key"];
+  value?: IRequestMessage["value"];
+  returnResult?: IRequestMessage["returnResult"];
+}
+
+export const createMessage = (props: ICreateMessageProps): IRequestMessage => {
+  return {
+    id: getGUID(),
+    storageType: props.storageType ?? "localStorage",
+    method: props.method,
+    key: props.key,
+    value: props.value,
+    returnResult: props.value
+  };
+};
