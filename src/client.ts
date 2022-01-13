@@ -1,8 +1,10 @@
 import { getGUID, IRequestMessage, IResponseMessage, IStorageType, parseJSON } from "./shared";
+import { error } from "./log";
 
 interface IClientConfig {
   domain: string;
   timeout?: number;
+  debug?: boolean;
 }
 
 interface ICreateMessageProps {
@@ -26,6 +28,7 @@ const createMessage = (props: ICreateMessageProps): IRequestMessage => {
 
 const getClient = (config: IClientConfig) => {
   const _timeout = config.timeout ?? 10000;
+  const debug = config.debug ?? false;
 
   const iframe = document.createElement("iframe");
 
@@ -52,7 +55,7 @@ const getClient = (config: IClientConfig) => {
       };
 
       document.body.appendChild(iframe);
-    });
+    }).catch(e => error(debug, e));
   };
 
   const disconnect = () => {
@@ -70,7 +73,9 @@ const getClient = (config: IClientConfig) => {
       key,
       value,
       storageType
-    }).then(r => r.result);
+    })
+      .then(r => r.result)
+      .catch(e => error(debug, e));
   };
 
   const get = (key: string, storageType?: IStorageType) => {
@@ -78,7 +83,9 @@ const getClient = (config: IClientConfig) => {
       method: "get",
       key,
       storageType
-    }).then(r => r.result);
+    })
+      .then(r => r.result)
+      .catch(e => error(debug, e));
   };
 
   const remove = (key: string, storageType?: IStorageType) => {
@@ -86,7 +93,9 @@ const getClient = (config: IClientConfig) => {
       method: "remove",
       key,
       storageType
-    }).then(r => r.result);
+    })
+      .then(r => r.result)
+      .catch(e => error(debug, e));
   };
 
   const handleOperation = (props: ICreateMessageProps): Promise<IResponseMessage> => {
