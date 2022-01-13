@@ -2,8 +2,11 @@ import { getGUID, IRequestMessage, IResponseMessage, IStorageType, parseJSON } f
 import { error } from "./log";
 
 interface IClientConfig {
+  /** Domain to connect to */
   domain: string;
+  /** Timeout limit in ms after which action will be rejected (default - `10000`) */
   timeout?: number;
+  /** Will log errors and warnings */
   debug?: boolean;
 }
 
@@ -26,6 +29,23 @@ const createMessage = (props: ICreateMessageProps): IRequestMessage => {
   };
 };
 
+/**
+ * Creates client instance
+ *
+ * Call `connect` to start communications with the server
+ *
+ * ```js
+ * const client = getClient({
+ *   domain: "https://www.example.com"
+ * });
+ *
+ * await client.connect();
+ *
+ * await client.set("key", "val");
+ *
+ * await client.get("key");
+ * ```
+ */
 const getClient = (config: IClientConfig) => {
   const _timeout = config.timeout ?? 10000;
   const debug = config.debug ?? false;
@@ -39,6 +59,13 @@ const getClient = (config: IClientConfig) => {
 
   let isConnected = false;
 
+  /**
+   * Connects to specified domain
+   *
+   * Under the hood will append invisible iframe to `document.body` with `src` of specified domain
+   *
+   * @param timeout Timeout after which the method will reject
+   */
   const connect = (timeout = _timeout) => {
     return new Promise((resolve, reject) => {
       const timeoutID = setTimeout(() => reject(false), timeout);
@@ -58,6 +85,11 @@ const getClient = (config: IClientConfig) => {
     }).catch(e => error(debug, e));
   };
 
+  /**
+   * Disconnect from specified domain
+   *
+   * Under the hood will remove invisible iframe from `document.body`
+   */
   const disconnect = () => {
     document.body.removeChild(iframe);
     isConnected = false;

@@ -6,10 +6,34 @@ interface IAllowedDomain {
   allowedStorageTypes?: IStorageType[];
 }
 interface IServerConfig {
+  /** List of allowed domains. Domains not included in this list will be rejected */
   allowedDomains: IAllowedDomain[];
+  /** Will log errors and warnings */
   debug?: boolean;
 }
 
+/**
+ * Creates a server to listen to clients
+ *
+ * Call `listen` to start accepting client connections
+ *
+ * ```js
+ * const server = getServer({
+ * allowedDomains: [
+ *    {
+ *      origin: /sub1.example.com$/,
+ *      allowedMethods: ["get", "set", "remove"]
+ *    },
+ *    {
+ *      origin: /sub2.example.com$/,
+ *      allowedMethods: ["get"]
+ *    }
+ *  ]
+ * });
+ *
+ * await server.listen();
+ * ```
+ */
 const getServer = (config: IServerConfig) => {
   const domains = config.allowedDomains ?? [];
   const debug = config.debug ?? false;
@@ -51,8 +75,10 @@ const getServer = (config: IServerConfig) => {
     }
   };
 
+  /** Start listening for incoming connections */
   const listen = () => window.addEventListener("message", handler);
 
+  /** Stop listening for incoming connections */
   const stopListening = () => window.removeEventListener("message", handler);
 
   return {
