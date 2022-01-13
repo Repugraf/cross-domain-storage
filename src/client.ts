@@ -53,14 +53,14 @@ const getClient = (config: IClientConfig) => {
    *
    * @param timeout Timeout after which the method will reject
    */
-  const connect = (timeout = _timeout) => {
-    return new Promise((resolve, reject) => {
+  const connect = (timeout = _timeout): Promise<void> => {
+    return new Promise<void>((resolve, reject) => {
       const timeoutID = setTimeout(() => reject(false), timeout);
 
       iframe.onload = () => {
         clearTimeout(timeoutID);
         isConnected = true;
-        resolve(true);
+        resolve();
       };
 
       iframe.onerror = e => {
