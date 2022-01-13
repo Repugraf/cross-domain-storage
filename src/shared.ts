@@ -48,3 +48,7 @@ export const createMessage = (props: ICreateMessageProps): IRequestMessage => {
 export const error = (debug?: boolean, ...args: any[]) => {
   if (debug) console.error(...args);
 };
+
+export const debugLog = (debug?: boolean, ...args: any[]) => {
+  if (debug) console.debug(...args);
+};
