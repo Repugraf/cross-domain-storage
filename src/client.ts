@@ -4,7 +4,8 @@ import {
   IResponseMessage,
   IStorageType,
   parseJSON,
-  error
+  error,
+  debugLog
 } from "./shared";
 
 interface IClientConfig {
@@ -16,6 +17,10 @@ interface IClientConfig {
   debug?: boolean;
   /** Target element for iframe (default `document.body`) */
   target?: HTMLElement;
+  /** Duplicates storage operation into current domain storage */
+  duplicate?: boolean;
+  /** If cross domain operation fails will fallback to current domain storage operations */
+  fallback?: boolean;
 }
 
 /**
@@ -36,9 +41,11 @@ interface IClientConfig {
  * ```
  */
 const getClient = (config: IClientConfig) => {
-  const _timeout = config.timeout ?? 10000;
+  const timeout = config.timeout ?? 10000;
   const debug = config.debug ?? false;
   const target = config.target ?? document.body;
+  const duplicate = config.duplicate ?? false;
+  const fallback = config.fallback ?? false;
 
   const iframe = document.createElement("iframe");
 
@@ -54,20 +61,22 @@ const getClient = (config: IClientConfig) => {
    *
    * Under the hood will append invisible iframe to `document.body` with `src` of specified domain
    *
-   * @param timeout Timeout after which the method will reject
+   * @param _timeout Timeout after which the method will reject
    */
-  const connect = (timeout = _timeout): Promise<void> => {
+  const connect = (_timeout = timeout): Promise<void> => {
     return new Promise<void>((resolve, reject) => {
-      const timeoutID = setTimeout(() => reject(false), timeout);
+      const timeoutID = setTimeout(() => reject(false), _timeout);
 
       iframe.onload = () => {
         clearTimeout(timeoutID);
         isConnected = true;
+        debugLog(debug, `Connected to server (${config.domain})`);
         resolve();
       };
 
       iframe.onerror = e => {
         clearTimeout(timeoutID);
+        error(debug, `Failed to connect to server (${config.domain})`, e);
         reject(e);
       };
 
@@ -95,9 +104,7 @@ const getClient = (config: IClientConfig) => {
       key,
       value,
       storageType
-    })
-      .then(r => r.result)
-      .catch(e => error(debug, e));
+    });
   };
 
   const get = (key: string, storageType?: IStorageType) => {
@@ -105,9 +112,7 @@ const getClient = (config: IClientConfig) => {
       method: "get",
       key,
       storageType
-    })
-      .then(r => r.result)
-      .catch(e => error(debug, e));
+    });
   };
 
   const remove = (key: string, storageType?: IStorageType) => {
@@ -115,12 +120,12 @@ const getClient = (config: IClientConfig) => {
       method: "remove",
       key,
       storageType
-    })
-      .then(r => r.result)
-      .catch(e => error(debug, e));
+    });
   };
 
-  const handleOperation = (props: ICreateMessageProps): Promise<IResponseMessage> => {
+  const handleOperation = async (
+    props: ICreateMessageProps
+  ): Promise<IResponseMessage["result"]> => {
     const message = createMessage({
       method: props.method,
       key: props.key,
@@ -128,34 +133,46 @@ const getClient = (config: IClientConfig) => {
       storageType: props.storageType ?? "localStorage"
     });
 
-    return new Promise((resolve, reject) => {
-      const clearListener = () => window.removeEventListener("message", handler);
+    try {
+      const { result } = await new Promise<IResponseMessage>((resolve, reject) => {
+        const clearListener = () => window.removeEventListener("message", handler);
 
-      const timeoutID = setTimeout(() => {
-        clearListener();
-        reject(new Error(`Timeout (${_timeout})`));
-      }, _timeout);
+        const timeoutID = setTimeout(() => {
+          clearListener();
+          reject(new Error(`Timeout (${timeout})`));
+        }, timeout);
 
-      const handler = (e: MessageEvent<any>) => {
-        const response = parseJSON<IResponseMessage>(e.data);
+        const handler = (e: MessageEvent<any>) => {
+          const response = parseJSON<IResponseMessage>(e.data);
 
-        if (!response) return;
+          if (!response) return;
 
-        if (message.id === response.id) {
-          clearTimeout(timeoutID);
-          return resolve(response);
+          if (message.id === response.id) {
+            clearTimeout(timeoutID);
+            return resolve(response);
+          }
+        };
+
+        window.addEventListener("message", handler);
+
+        if (!isConnected || !iframe.contentWindow) {
+          clearListener();
+          return reject(new Error("Not connected"));
         }
-      };
 
-      window.addEventListener("message", handler);
+        iframe.contentWindow.postMessage(JSON.stringify(message), config.domain);
 
-      if (!isConnected || !iframe.contentWindow) {
-        clearListener();
-        return reject(new Error("Not connected"));
-      }
+        if (duplicate)
+          window[message.storageType][`${message.method}Item`](message.key, message.value);
+      });
 
-      iframe.contentWindow.postMessage(JSON.stringify(message), config.domain);
-    });
+      return result;
+    } catch (err) {
+      error(debug, err);
+
+      if (fallback)
+        return window[message.storageType][`${message.method}Item`](message.key, message.value);
+    }
   };
 
   return {
