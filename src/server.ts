@@ -1,5 +1,11 @@
-import { IMethod, IRequestMessage, IResponseMessage, IStorageType, parseJSON } from "./shared";
-import { error } from "./log";
+import {
+  IMethod,
+  IRequestMessage,
+  IResponseMessage,
+  IStorageType,
+  parseJSON,
+  error
+} from "./shared";
 interface IAllowedDomain {
   origin: RegExp;
   allowedMethods?: IMethod[];

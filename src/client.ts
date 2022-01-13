@@ -3,9 +3,9 @@ import {
   ICreateMessageProps,
   IResponseMessage,
   IStorageType,
-  parseJSON
+  parseJSON,
+  error
 } from "./shared";
-import { error } from "./log";
 
 interface IClientConfig {
   /** Domain to connect to */
