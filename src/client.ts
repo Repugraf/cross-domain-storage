@@ -14,6 +14,8 @@ interface IClientConfig {
   timeout?: number;
   /** Will log errors and warnings */
   debug?: boolean;
+  /** Target element for iframe (default `document.body`) */
+  target?: HTMLElement;
 }
 
 /**
@@ -36,6 +38,7 @@ interface IClientConfig {
 const getClient = (config: IClientConfig) => {
   const _timeout = config.timeout ?? 10000;
   const debug = config.debug ?? false;
+  const target = config.target ?? document.body;
 
   const iframe = document.createElement("iframe");
 
@@ -68,7 +71,7 @@ const getClient = (config: IClientConfig) => {
         reject(e);
       };
 
-      document.body.appendChild(iframe);
+      target.appendChild(iframe);
     }).catch(e => error(debug, e));
   };
 
@@ -78,7 +81,7 @@ const getClient = (config: IClientConfig) => {
    * Under the hood will remove invisible iframe from `document.body`
    */
   const disconnect = () => {
-    document.body.removeChild(iframe);
+    target.removeChild(iframe);
     isConnected = false;
   };
 
