@@ -7,6 +7,7 @@ import {
   error
 } from "./shared";
 interface IAllowedDomain {
+  /** RegExp of allowed domain */
   origin: RegExp;
   allowedMethods?: IMethod[];
   allowedStorageTypes?: IStorageType[];
