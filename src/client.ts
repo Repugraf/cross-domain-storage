@@ -3,7 +3,6 @@ import {
   ICreateMessageProps,
   IResponseMessage,
   IStorageType,
-  parseJSON,
   error,
   debugLog
 } from "./shared";
@@ -143,14 +142,14 @@ const getClient = (config: IClientConfig) => {
         }, timeout);
 
         const handler = (e: MessageEvent<any>) => {
-          const response = parseJSON<IResponseMessage>(e.data);
+          const response: IResponseMessage = e.data;
 
-          if (!response) return;
+          if (!response || response.source !== "cross-domain-storage" || message.id !== response.id)
+            return;
 
-          if (message.id === response.id) {
-            clearTimeout(timeoutID);
-            return resolve(response);
-          }
+          clearTimeout(timeoutID);
+
+          return response.isError ? reject(new Error(response.result)) : resolve(response);
         };
 
         window.addEventListener("message", handler);
@@ -160,11 +159,18 @@ const getClient = (config: IClientConfig) => {
           return reject(new Error("Not connected"));
         }
 
-        iframe.contentWindow.postMessage(JSON.stringify(message), config.domain);
+        iframe.contentWindow.postMessage(message, config.domain);
 
         if (duplicate)
           window[message.storageType][`${message.method}Item`](message.key, message.value);
       });
+
+      debugLog(
+        debug,
+        `[Client] Action executed: ${message.storageType}.${message.method}Item(${message.key}${
+          message.value ? `, ${message.value}` : ""
+        })`
+      );
 
       return result;
     } catch (err) {
@@ -180,7 +186,10 @@ const getClient = (config: IClientConfig) => {
     disconnect,
     set,
     get,
-    remove
+    remove,
+    get isConnected() {
+      return isConnected;
+    }
   };
 };
 

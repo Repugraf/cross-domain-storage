@@ -3,8 +3,8 @@ import {
   IRequestMessage,
   IResponseMessage,
   IStorageType,
-  parseJSON,
-  error
+  error,
+  debugLog
 } from "./shared";
 interface IAllowedDomain {
   /** RegExp of allowed domain */
@@ -44,12 +44,35 @@ interface IServerConfig {
 const getServer = (config: IServerConfig) => {
   const domains = config.allowedDomains ?? [];
   const debug = config.debug ?? false;
+  const clients = new Set<string>();
 
   const handler = (e: MessageEvent<any>) => {
+    const post = postMessage.bind(null, e.origin);
+
+    const initialMessage: IResponseMessage = {
+      id: "",
+      source: "cross-domain-storage",
+      isResponse: true,
+      isError: false,
+      result: null
+    };
+
     try {
+      const data: IRequestMessage = e.data;
+
+      if (data.source !== "cross-domain-storage") return;
+
+      initialMessage.id = data.id;
+
       const currentDomain = domains.find(d => d.origin.test(e.origin));
 
-      if (!currentDomain) return error(debug, `Domain not allowed (${e.origin})`);
+      if (!currentDomain) {
+        return post({
+          ...initialMessage,
+          result: `Domain not allowed (${e.origin})`,
+          isError: true
+        });
+      }
 
       const allowedMethods = currentDomain.allowedMethods ?? ["get", "set", "remove"];
       const allowedStorageTypes = currentDomain.allowedStorageTypes ?? [
@@ -57,41 +80,62 @@ const getServer = (config: IServerConfig) => {
         "sessionStorage"
       ];
 
-      const data = parseJSON<IRequestMessage>(e.data);
+      if (!allowedMethods.includes(data.method)) {
+        return post({
+          ...initialMessage,
+          result: `Method not allowed (${data.method})`,
+          isError: true
+        });
+      }
 
-      if (!data) return error(debug, "Failed to parse json or data is invalid");
+      if (!allowedStorageTypes.includes(data.storageType)) {
+        return post({
+          ...initialMessage,
+          result: `Storage type not allowed (${data.storageType})`,
+          isError: true
+        });
+      }
 
-      if (!allowedMethods.includes(data.method))
-        return error(debug, `Method not allowed (${data.method})`);
-
-      if (!allowedStorageTypes.includes(data.storageType))
-        return error(debug, `Storage type not allowed (${data.storageType})`);
+      clients.add(e.origin);
 
       const result = window[data.storageType][`${data.method}Item`](data.key, data.value);
 
-      window.top?.postMessage(
-        JSON.stringify({
-          id: data.id,
-          isResponse: true,
-          result
-        } as IResponseMessage),
-        e.origin
+      debugLog(
+        debug,
+        `[Server] Action executed: ${data.storageType}.${data.method}Item(${data.key}${
+          data.value ? `, ${data.value}` : ""
+        })`
       );
+
+      post({ ...initialMessage, result });
     } catch (err) {
       error(debug, err);
     }
   };
 
   /** Start listening for incoming connections */
-  const listen = () => window.addEventListener("message", handler);
+  const listen = () => {
+    window.addEventListener("message", handler);
+    debugLog(debug, "[Server] Listening for incoming connections");
+  };
 
   /** Stop listening for incoming connections */
-  const stopListening = () => window.removeEventListener("message", handler);
+  const stopListening = () => {
+    window.removeEventListener("message", handler);
+    debugLog(debug, "[Server] Stopped listening for incoming connections");
+  };
 
   return {
     listen,
-    stopListening
+    stopListening,
+    get clients() {
+      return [...clients];
+    }
   };
+};
+
+const postMessage = (origin: string, message: IResponseMessage) => {
+  window.top?.postMessage(message, origin);
 };
 
 export { getServer };
