@@ -6,7 +6,7 @@ Enables shared cross domain localStorage and sessionStorage.
 
 1. Server  
    Listens for a window messages from allowed domains.
-   If the client domain, method or storage type is not allowed the message will be ignored.
+   If the client domain, method or storage type is not allowed the message will send back error message.
 2. Client  
    On Connections creates an invisible iframe with specified domain as `src` attribute and appends it to `document.body`.
    Client communicates with that iframe through posting and listing to messages.
