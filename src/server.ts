@@ -15,7 +15,7 @@ interface IAllowedDomain {
 interface IServerConfig {
   /** List of allowed domains. Domains not included in this list will be rejected */
   allowedDomains: IAllowedDomain[];
-  /** Will log errors and warnings */
+  /** Will log errors, warnings and useful info */
   debug?: boolean;
 }
 
