@@ -9,7 +9,7 @@ Enables shared cross domain localStorage and sessionStorage.
    If the client domain, method or storage type is not allowed the message will be ignored.
 2. Client  
    On Connections creates an invisible iframe with specified domain as `src` attribute and appends it to `document.body`.
-   Client communicates this that iframe through posting and listing to messages.
+   Client communicates with that iframe through posting and listing to messages.
 
 All communications are handled with `iframe.contentWindow.postMessage`, `window.top.postMessage` and `window.addEventListener`
 
