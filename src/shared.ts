@@ -3,6 +3,7 @@ export type IStorageType = "localStorage" | "sessionStorage";
 
 export interface IRequestMessage {
   id: string;
+  source: "cross-domain-storage";
   storageType: IStorageType;
   method: IMethod;
   key: string;
@@ -12,19 +13,13 @@ export interface IRequestMessage {
 
 export interface IResponseMessage {
   id: string;
+  source: "cross-domain-storage";
+  isError: boolean;
   isResponse: boolean;
   result: any;
 }
 
 export const getGUID = () => `${Date.now()}-${Math.random()}`;
-
-export const parseJSON = <T = any>(data: any): T | null => {
-  try {
-    return JSON.parse(data);
-  } catch (err) {
-    return null;
-  }
-};
 
 export interface ICreateMessageProps {
   storageType?: IRequestMessage["storageType"];
@@ -37,6 +32,7 @@ export interface ICreateMessageProps {
 export const createMessage = (props: ICreateMessageProps): IRequestMessage => {
   return {
     id: getGUID(),
+    source: "cross-domain-storage",
     storageType: props.storageType ?? "localStorage",
     method: props.method,
     key: props.key,
@@ -50,5 +46,5 @@ export const error = (debug?: boolean, ...args: any[]) => {
 };
 
 export const debugLog = (debug?: boolean, ...args: any[]) => {
-  if (debug) console.debug(...args);
+  if (debug) console.log(...args);
 };
