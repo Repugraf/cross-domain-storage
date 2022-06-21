@@ -1,6 +1,6 @@
 {
   "name": "@repugraf/cross-domain-storage",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Enables shared cross domain localStorage and sessionStorage",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",

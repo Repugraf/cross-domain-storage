@@ -52,6 +52,7 @@ const getClient = (config: IClientConfig) => {
   iframe.style.width = "0";
   iframe.style.height = "0";
   iframe.style.display = "none";
+  iframe.id = "cross-domain-storage";
 
   let isConnected = false;
 
